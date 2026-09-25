@@ -138,7 +138,7 @@ Design decisions:
 
 ## How I built it
 
-I designed the pipeline and co-created the code with Claude Code, under strict, targeted requirements: local only, no dependencies, originals never touched, one text file per document. I tested every version against my real documents and made the calls on what to change. One example: scanned PDFs were first read from a single low-resolution page; I switched to OCR on every page, rendered at 300 dpi.
+I designed the pipeline under strict, targeted requirements: local only, no dependencies, originals never touched, one text file per document. I tested every version against my real documents and made the calls on what to change. One example: scanned PDFs were first read from a single low-resolution page; I switched to OCR on every page, rendered at 300 dpi.
 
 ## License
 
