@@ -1,0 +1,23 @@
+# Runs the end-to-end tests on every push and pull request, on a Mac: builds the OCR binary,
+# generates the fictitious documents, then checks statuses, multi-page OCR and incremental runs.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the OCR binary
+        run: swiftc -O ocr.swift -o ocr
+      - name: Tests
+        run: /usr/bin/python3 -m unittest discover -s tests -v

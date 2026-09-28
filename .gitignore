@@ -1,0 +1,47 @@
+# Compiled OCR binary (build it with: swiftc -O ocr.swift -o ocr)
+/ocr
+
+# Generated demo documents and extracted text
+examples/sample-docs/
+.doc-index/
+
+# Real documents must never land here
+*.pdf
+*.docx
+*.doc
+*.rtf
+*.odt
+*.jpg
+*.jpeg
+*.heic
+*.tiff
+*.tif
+*.png
+*.gif
+*.webp
+*.csv
+*.txt
+*.html
+*.htm
+*.webarchive
+*.m4a
+*.md
+*.json
+*.xlsx
+*.xls
+*.pages
+*.numbers
+*.key
+*.eml
+*.zip
+_manifest.tsv
+!docs/demo.png
+!README*.md
+!docs/*.md
+
+# Secrets
+.env
+.env.*
+
+__pycache__/
+.DS_Store
