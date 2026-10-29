@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.png">
+  <img src="docs/banner-light.png" alt="doc-indexer-macos" width="100%">
+</picture>
+
 # doc-indexer-macos
 
 [![Tests](https://github.com/Bouliw/doc-indexer-macos/actions/workflows/tests.yml/badge.svg)](https://github.com/Bouliw/doc-indexer-macos/actions/workflows/tests.yml)
