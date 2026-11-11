@@ -41,6 +41,7 @@ Testé sur de vrais dossiers mêlant PDF texte, scans, photos prises au téléph
 - Incrémental : chaque `.txt` garde la date de modification de son document, et un fichier est retraité dès que cette date change, même si elle recule (un document remplacé par une copie antérieure). `--force` refait tout.
 - Supprime le texte d'un document effacé ou renommé depuis la dernière exécution, pour que rien dans la sortie ne décrive un fichier qui n'existe plus.
 - Écrit `_manifest.tsv`, avec une ligne par fichier : chemin, type, taille, date, statut et nombre de mots (ceux du document lui-même, sans l'en-tête ni les marqueurs de page de l'OCR). Un statut `empty (check)` signale un document à ouvrir à la main, le plus souvent une photo ratée.
+- Deux exécutions sur le même dossier de sortie ne se mélangent jamais : la seconde attend que la première ait fini.
 - N'écrit jamais dans le dossier source, sauf dans le dossier de sortie lui-même si vous gardez l'emplacement par défaut. Le dossier de sortie ne peut être ni le dossier source, ni un dossier qui le contient. Un dossier de sortie qui existe déjà n'est accepté que s'il est vide ou contient le manifeste d'une exécution précédente, et seuls les textes listés dans ce manifeste peuvent être supprimés.
 
 L'extraction elle-même n'utilise aucun modèle de langage. L'IA intervient après : n'importe quel agent IA peut lire le manifeste et les fichiers texte, tenir un index des documents (catégorie, date, échéance) et répondre aux questions posées dessus.
@@ -87,6 +88,12 @@ Statuts du manifeste :
 | `skipped` | audio, vidéo ou extrait web, non indexé |
 | `unsupported` | aucun extracteur pour ce type de fichier |
 | `error: <Exception>` | l'extracteur a échoué sur ce fichier (`NoOCRBinary` : compilez d'abord `ocr`) ; l'exécution continue et le fichier sera retenté la fois suivante |
+
+## Appels et cours transcrits avec Earshot
+
+[Earshot](https://github.com/Bouliw/earshot) transcrit les appels et les cours sur le Mac et enregistre un `Transcript.txt` par session. Activez dans Earshot Réglages › Recherche dans vos documents › « Indexer les transcriptions avec doc-indexer », indiquez-lui `extract_texts.py`, et il lance doc-indexer tout seul après chaque transcription, en priorité basse et jamais pendant un appel. Transcriptions et documents se retrouvent alors dans le même dossier `.doc-index`.
+
+Dans le manifeste, la transcription d'une session Earshot a le type `transcript` au lieu de `.txt`, pour qu'un agent distingue un appel ou un cours d'un document. Le fichier `Audio.m4a` de la session reste `skipped`.
 
 ## Tester sur des documents fictifs
 
@@ -156,7 +163,7 @@ swiftc -O ocr.swift -o ocr
 python3 -m unittest discover -s tests -v
 ```
 
-Les tests génèrent les documents fictifs, puis vérifient chaque statut, l'OCR de chaque page d'un scan ou d'un TIFF multipage et celui des images transparentes, les valeurs des champs de formulaire (sans les cases à cocher), les fichiers texte en Windows-1252 et en UTF-16, la lecture des pages web enregistrées sans une seule requête réseau, les signalements maintenus d'une exécution à l'autre, les fichiers retentés après une erreur ou tant que le binaire OCR manque, un document remplacé par une copie plus ancienne, le nettoyage après un renommage ou une suppression (et l'absence de nettoyage quand un dossier est illisible), et des originaux laissés intacts. Une seconde série n'utilise que des fichiers texte : les fichiers personnels laissés intacts dans le dossier de sortie, des textes lisibles par leur seul propriétaire, les liens vers des fichiers non suivis, et les noms de fichiers débarrassés des caractères de contrôle dans les avertissements. GitHub Actions lance l'ensemble sur un Mac à chaque push.
+Les tests génèrent les documents fictifs, puis vérifient chaque statut, l'OCR de chaque page d'un scan ou d'un TIFF multipage et celui des images transparentes, les valeurs des champs de formulaire (sans les cases à cocher), les fichiers texte en Windows-1252 et en UTF-16, la lecture des pages web enregistrées sans une seule requête réseau, les signalements maintenus d'une exécution à l'autre, les fichiers retentés après une erreur ou tant que le binaire OCR manque, un document remplacé par une copie plus ancienne, le nettoyage après un renommage ou une suppression (et l'absence de nettoyage quand un dossier est illisible), et des originaux laissés intacts. Une seconde série n'utilise que des fichiers texte : les fichiers personnels laissés intacts dans le dossier de sortie, des textes lisibles par leur seul propriétaire, les liens vers des fichiers non suivis, les noms de fichiers débarrassés des caractères de contrôle dans les avertissements, les transcriptions Earshot typées à part, et une seconde exécution qui attend la première. GitHub Actions lance l'ensemble sur un Mac à chaque push.
 
 ## Licence
 

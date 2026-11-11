@@ -9,9 +9,11 @@ PDF: text layer and form field values via PDFKit, or Vision OCR of every page (r
 when the PDF is a scan. Word, RTF, ODT and saved web pages: textutil. Images (png, jpg, heic, tiff...): Vision OCR
 through the `ocr` binary. Source files are never modified: everything is written to OUT_DIR, with a
 _manifest.tsv listing every file, its status and its word count. Texts of documents deleted or
-renamed since the last run are removed from OUT_DIR.
+renamed since the last run are removed from OUT_DIR. The Transcript.txt of an Earshot session is listed
+with the type "transcript", so a reader of the manifest can tell a call or class from a document.
 """
 import argparse
+import fcntl
 import os
 import re
 import subprocess
@@ -38,6 +40,11 @@ MIN_PDF_WORDS = 15
 HEADER = "# Source: "
 
 MANIFEST = "_manifest.tsv"
+# Held during a run, so two runs on the same output folder (one started by Earshot, one by hand) never mix
+LOCK = ".lock"
+
+# An Earshot session folder holds this record next to its Transcript.txt
+EARSHOT_RECORD = ".earshot.json"
 MANIFEST_HEADER = "path\ttype\tsize_kb\tmodified\tstatus\twords"
 
 # Lines added by the extraction, not by the document
@@ -182,6 +189,24 @@ def index_file(p, rel, target, force):
     return "extracted"
 
 
+def kind(p):
+    """Type column of the manifest: the extension, or "transcript" for the text of an Earshot session."""
+    if p.name == "Transcript.txt" and (p.parent / EARSHOT_RECORD).is_file():
+        return "transcript"
+    return p.suffix.lower() or "-"
+
+
+def lock(out):
+    """Waits for any other run on this output folder, then holds it until this run ends."""
+    handle = open(out / LOCK, "a")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("another run is indexing into this folder: waiting for it to finish", file=sys.stderr)
+        fcntl.flock(handle, fcntl.LOCK_EX)
+    return handle  # the lock is released when the process exits
+
+
 def listed(out):
     """Lines of the manifest of the previous run, by document name as written there."""
     manifest = out / MANIFEST
@@ -239,6 +264,7 @@ def main():
     if not (out / MANIFEST).exists():
         # Written first, so a first run stopped halfway leaves a folder that the next run accepts
         (out / MANIFEST).write_text(MANIFEST_HEADER + "\n", encoding="utf-8")
+    held = lock(out)  # noqa: F841 - kept open for the whole run
     if not OCR_BIN.exists():
         print(f"warning: no OCR binary at {OCR_BIN}: images and scans stay in error until it is built "
               "(swiftc -O ocr.swift -o ocr)", file=sys.stderr)
@@ -267,7 +293,7 @@ def main():
         except OSError as e:  # file gone during the run, name too long for the output folder...
             status = f"error: {e.__class__.__name__}"
         name = printable(rel)
-        rows.append(f"{name}\t{p.suffix.lower() or '-'}\t{size_kb}\t{modified}\t{status}\t{words}")
+        rows.append(f"{name}\t{kind(p)}\t{size_kb}\t{modified}\t{status}\t{words}")
         counts[status.split(":")[0]] += 1
         print(f"{status:<14} {words:>6}  {name}")
 

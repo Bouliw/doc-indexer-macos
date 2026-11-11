@@ -1,5 +1,6 @@
 """End-to-end tests on fictitious documents. Needs macOS and the ocr binary next to extract_texts.py
 (swiftc -O ocr.swift -o ocr). Run: python3 -m unittest discover -s tests -v"""
+import fcntl
 import http.server
 import os
 import shutil
@@ -350,6 +351,41 @@ class SafetyTest(unittest.TestCase):
         self.assertFalse((out / 'notes' / 'innocent.txt.txt').exists())
         self.assertNotIn('innocent.txt', (out / '_manifest.tsv').read_text(encoding='utf-8'))
         self.assertTrue((out / 'notes' / 'todo.md.txt').exists())
+
+
+    def test_earshot_transcripts_are_typed(self):
+        session = self.src / 'Recordings' / 'Marketing' / '2026-11-11'
+        session.mkdir(parents=True)
+        (session / '.earshot.json').write_text('{}', encoding='utf-8')
+        (session / 'Transcript.txt').write_text('Marketing — 11 November 2026\n\n[09:00:05] Speaker 1\nToday: pricing.\n', encoding='utf-8')
+        (session / 'Audio.m4a').write_bytes(b'')
+        (self.src / 'notes' / 'Transcript.txt').write_text('A note that only shares the name.\n', encoding='utf-8')
+        self.assertEqual(self.run_extract().returncode, 0)
+        rows = {line.split('\t')[0]: line.split('\t') for line in
+                (self.src / '.doc-index' / '_manifest.tsv').read_text(encoding='utf-8').splitlines()[1:]}
+        self.assertEqual(rows['Recordings/Marketing/2026-11-11/Transcript.txt'][1:2], ['transcript'])
+        self.assertEqual(rows['Recordings/Marketing/2026-11-11/Transcript.txt'][4], 'extracted')
+        self.assertEqual(rows['Recordings/Marketing/2026-11-11/Audio.m4a'][4], 'skipped')
+        self.assertEqual(rows['notes/Transcript.txt'][1], '.txt')
+        self.assertNotIn('Recordings/Marketing/2026-11-11/.earshot.json', rows)
+
+    def test_a_second_run_waits_for_the_first(self):
+        self.assertEqual(self.run_extract().returncode, 0)
+        out = self.src / '.doc-index'
+        (self.src / 'notes' / 'new.md').write_text('Call the bank about the card.\n', encoding='utf-8')
+        with open(out / '.lock', 'a') as held:
+            fcntl.flock(held, fcntl.LOCK_EX)  # a run in progress
+            run = subprocess.Popen([sys.executable, str(ROOT / 'extract_texts.py'), str(self.src)],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                   env=dict(os.environ, DOC_INDEXER_OCR=str(self.tmp / 'no-ocr')))
+            with self.assertRaises(subprocess.TimeoutExpired):
+                run.wait(timeout=1.5)
+            self.assertFalse((out / 'notes' / 'new.md.txt').exists())
+        stdout, stderr = run.communicate(timeout=30)
+        self.assertEqual(run.returncode, 0)
+        self.assertIn('waiting for it to finish', stderr)
+        self.assertTrue((out / 'notes' / 'new.md.txt').exists())
+        self.assertIn('notes/new.md\t', (out / '_manifest.tsv').read_text(encoding='utf-8'))
 
 
 class WordsTest(unittest.TestCase):

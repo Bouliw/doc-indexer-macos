@@ -41,6 +41,7 @@ Tested on real-world mixes of text PDFs, scans, phone photos and Word files.
 - Incremental: each `.txt` keeps the modification date of its document, and a file is processed again as soon as that date changes, even to an older one (a document replaced by an earlier copy). `--force` redoes everything.
 - Removes the text of a document deleted or renamed since the last run, so nothing in the output describes a file that is gone.
 - Writes `_manifest.tsv` with one line per file: path, type, size, date, status and word count (words of the document itself, without the header and OCR page markers). An `empty (check)` status points to a document worth opening by hand, usually a bad photo.
+- Two runs on the same output folder never mix: the second one waits for the first to finish.
 - Never writes into the source folder, except the output folder itself when you keep the default location. The output folder cannot be the source folder or contain it. An existing output folder is accepted only if it is empty or holds the manifest of a previous run, and only the texts listed in that manifest are ever removed.
 
 The extraction itself uses no language model. The AI part comes after: any AI agent can read the manifest and the text files, keep an index of the documents (category, date, deadline) and answer questions about them.
@@ -87,6 +88,12 @@ Statuses in the manifest:
 | `skipped` | audio, video or web clipping, not indexed |
 | `unsupported` | no extractor for this file type |
 | `error: <Exception>` | the extractor failed on this file (`NoOCRBinary`: build `ocr` first); the run goes on, and the file is tried again next time |
+
+## Calls and classes transcribed with Earshot
+
+[Earshot](https://github.com/Bouliw/earshot) transcribes calls and classes on the Mac and saves one `Transcript.txt` per session. In Earshot, turn on Settings › Search with your documents › "Index transcripts with doc-indexer", point it to `extract_texts.py`, and it runs doc-indexer by itself after each transcript, at low priority and never during a call. Transcripts and documents then sit in the same `.doc-index` folder.
+
+In the manifest, the transcript of an Earshot session has the type `transcript` instead of `.txt`, so an agent can tell a call or a class from a document. The session's `Audio.m4a` stays `skipped`.
 
 ## Try it on fictitious documents
 
@@ -156,7 +163,7 @@ swiftc -O ocr.swift -o ocr
 python3 -m unittest discover -s tests -v
 ```
 
-The tests generate the fictitious documents, then check every status, OCR on each page of a multi-page scan or TIFF and on transparent images, form field values (checkboxes left out), Windows-1252 and UTF-16 text files, saved web pages read without a single network request, flags kept from one run to the next, retries after an error or until the OCR binary exists, a document replaced by an older copy, the cleanup after a rename or a deletion (and no cleanup when a folder cannot be read), and originals left untouched. A second set uses plain text files only: files of your own left alone in the output folder, texts readable by their owner only, file links not followed, and file names cleaned of control characters in warnings. GitHub Actions runs them all on a Mac on every push.
+The tests generate the fictitious documents, then check every status, OCR on each page of a multi-page scan or TIFF and on transparent images, form field values (checkboxes left out), Windows-1252 and UTF-16 text files, saved web pages read without a single network request, flags kept from one run to the next, retries after an error or until the OCR binary exists, a document replaced by an older copy, the cleanup after a rename or a deletion (and no cleanup when a folder cannot be read), and originals left untouched. A second set uses plain text files only: files of your own left alone in the output folder, texts readable by their owner only, file links not followed, file names cleaned of control characters in warnings, Earshot transcripts typed apart, and a second run that waits for the first. GitHub Actions runs them all on a Mac on every push.
 
 ## License
 
