@@ -165,6 +165,19 @@ python3 -m unittest discover -s tests -v
 
 The tests generate the fictitious documents, then check every status, OCR on each page of a multi-page scan or TIFF and on transparent images, form field values (checkboxes left out), Windows-1252 and UTF-16 text files, saved web pages read without a single network request, flags kept from one run to the next, retries after an error or until the OCR binary exists, a document replaced by an older copy, the cleanup after a rename or a deletion (and no cleanup when a folder cannot be read), and originals left untouched. A second set uses plain text files only: files of your own left alone in the output folder, texts readable by their owner only, file links not followed, file names cleaned of control characters in warnings, Earshot transcripts typed apart, and a second run that waits for the first. GitHub Actions runs them all on a Mac on every push.
 
+## More tools by Bouliw
+
+- [Roughcut](https://github.com/Bouliw/fcpxml-roughcut): Turns talking-head footage into a rough cut you finish in Final Cut Pro.
+- [Vigie](https://github.com/Bouliw/vigie): Sigma detection on Windows, Linux and macOS logs, with a report mapped to MITRE ATT&CK.
+- [Earshot](https://github.com/Bouliw/earshot): Live, on-device transcription of any app on your Mac, with speaker names.
+- [Lantern](https://github.com/Bouliw/lantern): A stylish Jellyfin client for desktop, LG webOS TVs and phones.
+- [Boulito](https://github.com/Bouliw/boulito): A voice assistant that runs 100% on your Mac.
+- [trackmend](https://github.com/Bouliw/trackmend): Repairs a macOS Music library full of local files.
+- [Takeline](https://github.com/Bouliw/takeline): A teleprompter that follows your voice, entirely on your Mac.
+- [mac-toolkit](https://github.com/Bouliw/mac-toolkit): Small tools I use every day on my Mac.
+
+All projects: [bouliw.github.io](https://bouliw.github.io)
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
