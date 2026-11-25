@@ -5,7 +5,7 @@
 
 # doc-indexer-macos
 
-[![Tests](https://github.com/Bouliw/doc-indexer-macos/actions/workflows/tests.yml/badge.svg)](https://github.com/Bouliw/doc-indexer-macos/actions/workflows/tests.yml)
+[![Tests](https://github.com/Bouliw/doc-indexer-macos/actions/workflows/tests.yml/badge.svg)](https://github.com/Bouliw/doc-indexer-macos/actions/workflows/tests.yml) [![Release](https://img.shields.io/github/v/release/Bouliw/doc-indexer-macos?sort=semver)](https://github.com/Bouliw/doc-indexer-macos/releases/latest) [![License](https://img.shields.io/github/license/Bouliw/doc-indexer-macos)](LICENSE)
 
 [Version française](README.fr.md)
 
